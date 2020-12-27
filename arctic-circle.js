@@ -1,5 +1,5 @@
-const CANVAS_WIDTH = 500
-const CANVAS_HEIGHT = 500
+const CANVAS_WIDTH = 800
+const CANVAS_HEIGHT = 600
 const CANVAS_SCALE = 20
 const DOMINO_BORDER_COLOR = "Black"
 const DOMINO_BORDER_WIDTH = 0.04
@@ -152,10 +152,10 @@ function doStep () {
         stage.addChild(...dominoesToAdd.map(d => d.shape))
         stage.removeChild(...dominoesToDestroy.map(d => d.shape))
 
-        // after 10 steps, we adjust the transform so that the dominoes continue to stay within the canvas bounds
-        if (step >= 10) {
+        // after 14 steps, we adjust the transform so that the dominoes continue to stay within the canvas bounds
+        if (step >= 14) {
             createjs.Tween.get(stage)
-                .to({ scale: CANVAS_SCALE * 10 / step }, playSpeed * .25, createjs.Ease.getPowInOut(2))
+                .to({ scale: CANVAS_SCALE * 14 / step }, playSpeed * .25, createjs.Ease.getPowInOut(2))
         }
     }, playSpeed * .5)
 }

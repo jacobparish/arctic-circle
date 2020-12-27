@@ -2,10 +2,16 @@ body {
     font-family: Avenir, Helvetica, Arial, sans-serif;
 }
 
-#controls-container {
+#content {
     display: flex;
     flex-direction: row;
+}
+
+#controls-container {
+    display: flex;
+    flex-direction: column;
     flex-wrap: wrap;
+    border-left: 1px solid #ccc;
 }
 
 #controls-container > div {

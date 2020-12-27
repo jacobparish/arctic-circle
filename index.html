@@ -13,29 +13,31 @@
 <body onload="init()">
     <h1>Arctic Circle Fun</h1>
 
-    <canvas id="canvas"></canvas>
+    <div id="content">
+        <canvas id="canvas"></canvas>
 
-    <div id="controls-container">
-        <div>
-            <h3>Controls</h3>
-            <button id="play-toggle-button" onclick="togglePlay()">Play</button>
-            <button id="step-button" onclick="doStep()">Step</button>
-            <button id="reset-button" onclick="doReset()">Reset</button>
-        </div>
+        <div id="controls-container">
+            <div>
+                <h3>Controls</h3>
+                <button id="play-toggle-button" onclick="togglePlay()">Play</button>
+                <button id="step-button" onclick="doStep()">Step</button>
+                <button id="reset-button" onclick="doReset()">Reset</button>
+            </div>
 
-        <div>
-            <h3>Orientation bias</h3>
-            <span>||</span>
-            <input type="range" min="0" max="1" step=".01" value="0.5" id="orientation-bias-input">
-            <span>==</span>
-        </div>
+            <div>
+                <h3>Orientation bias</h3>
+                <span>||</span>
+                <input type="range" min="0" max="1" step=".01" value="0.5" id="orientation-bias-input">
+                <span>==</span>
+            </div>
 
-        <div>
-            <h3>Colors</h3>
-            <input type="color" id="westward-color-input" value="#0000ff">
-            <input type="color" id="eastward-color-input" value="#ffa500">
-            <input type="color" id="northward-color-input" value="#ff0000">
-            <input type="color" id="southward-color-input" value="#008000">    
+            <div>
+                <h3>Colors</h3>
+                <input type="color" id="westward-color-input" value="#0000ff">
+                <input type="color" id="eastward-color-input" value="#ffa500">
+                <input type="color" id="northward-color-input" value="#ff0000">
+                <input type="color" id="southward-color-input" value="#008000">    
+            </div>
         </div>
     </div>
 </body>
