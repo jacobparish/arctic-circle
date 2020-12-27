@@ -94,8 +94,10 @@ function doStep () {
     }
   }
 
+  const [dominoesToDestroy, dominoesToKeep] = partition(dominoes, d => d.shouldDestroy)
+
   // update the domino positions
-  for (let domino of dominoes) {
+  for (let domino of dominoesToKeep) {
     domino.x += domino.vx
     domino.y += domino.vy
   }
@@ -110,9 +112,7 @@ function doStep () {
   }
 
   // mark the spaces that are currently occupied by dominoes
-  for (let domino of dominoes) {
-    if (domino.shouldDestroy) continue
-
+  for (let domino of dominoesToKeep) {
     for (let x = domino.x; x < domino.x + domino.w; x++) {
       for (let y = domino.y; y < domino.y + domino.h; y++) {
         grid[y+step][x+step] = false
@@ -131,8 +131,6 @@ function doStep () {
       }
     }
   }
-
-  const [dominoesToDestroy, dominoesToKeep] = partition(dominoes, d => d.shouldDestroy)
 
   // fade out the dominoes that will collide
   for (let domino of dominoesToDestroy) {
