@@ -1,17 +1,31 @@
 const CANVAS_WIDTH = 800
 const CANVAS_HEIGHT = 600
 const CANVAS_SCALE = 20
-const DOMINO_BORDER_COLOR = "Black"
+const DOMINO_BORDER_COLOR = "black"
 const DOMINO_BORDER_WIDTH = 0.04
+const GRID_COLOR = "black"
+const GRID_BORDER_WIDTH = 0.04
+
+const STEP_HANDLERS = [
+  doCollideStep,
+  doExpandStep,
+  doAdvanceStep,
+  doCreateStep,
+]
+const NUM_STEPS = STEP_HANDLERS.length
 
 let stage
+let iteration
 let step
+let grid
 let dominoes
+let dominoesToKeep
 
 // play/pause controls
+let isDoingStep = false
 let isPlaying = false
 let playInterval
-let playSpeed = 2000
+let playSpeed = 2500
 let timeout
 
 // other controls
@@ -30,6 +44,9 @@ function init() {
 
   createjs.Ticker.framerate = 60
   createjs.Ticker.addEventListener("tick", stage)
+
+  grid = new createjs.Shape()
+  grid.x = grid.y = 0
 
   doReset()
 
@@ -62,18 +79,35 @@ function doReset () {
 
   stage.removeAllChildren()
   stage.setTransform(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, CANVAS_SCALE, CANVAS_SCALE)
+  stage.addChild(grid)
 
-  step = 1
+  drawGridForIteration(1)
 
   // create the first 2 dominoes
   dominoes = createTwoByTwo(0, 0)
   stage.addChild(...dominoes.map(d => d.shape))
+
+  // iteration 1 is really just the first pair of dominoes, so we start at 2
+  iteration = 2
+  step = 0
 }
 
-// Simulate a single step
-function doStep () {
-  step += 1
+async function doStep () {
+  // put a lock on this function so that spamming the button doesn't screw things up
+  if (isDoingStep) return
 
+  isDoingStep = true
+  if (step >= NUM_STEPS) {
+    step = 0
+    iteration += 1
+  }
+  const stepHandler = STEP_HANDLERS[step]
+  await stepHandler()
+  step += 1
+  isDoingStep = false
+}
+
+async function doCollideStep () {
   // destroy dominoes that will collide
   // we could do better than O(n^2) here but this seemed easier
   for (let i = 0; i < dominoes.length; i++) {
@@ -94,81 +128,111 @@ function doStep () {
     }
   }
 
-  const [dominoesToDestroy, dominoesToKeep] = partition(dominoes, d => d.shouldDestroy)
+  const [dominoesToDestroy, remaining] = partition(dominoes, d => d.shouldDestroy)
+  dominoesToKeep = remaining
 
+  // fade out the dominoes that will collide
+  for (let domino of dominoesToDestroy) {
+    createjs.Tween.get(domino.shape).to({alpha: 0}, playSpeed * .1, createjs.Ease.getPowInOut(2))
+  }
+
+  await waitFor(playSpeed * .2)
+
+  stage.removeChild(...dominoesToDestroy.map(d => d.shape))
+}
+
+async function doExpandStep () {
+  drawGridForIteration(iteration)
+
+  // after 14 iterations, we adjust the transform so that the dominoes continue to stay within the canvas bounds
+  if (iteration >= 14) {
+    createjs.Tween.get(stage)
+      .to({ scale: CANVAS_SCALE * 14 / iteration }, playSpeed * .1, createjs.Ease.getPowInOut(2))
+  }
+
+  await waitFor(playSpeed * .15)
+}
+
+async function doAdvanceStep () {
   // update the domino positions
   for (let domino of dominoesToKeep) {
     domino.x += domino.vx
     domino.y += domino.vy
+    createjs.Tween.get(domino.shape)
+      .to({ x: domino.x, y: domino.y }, playSpeed * .1, createjs.Ease.getPowInOut(2))
   }
 
+  await waitFor(playSpeed * .2)
+}
+
+async function doCreateStep () {
   // make a 2D boolean array to hold all the occupied (false) and non-occupied (true) positions
-  let grid = []
-  for (let i = 0; i < step; i++) {
-    grid.push(Array(step * 2).fill(false).fill(true, step - i - 1, step + i + 1))
+  let map = []
+  for (let i = 0; i < iteration; i++) {
+    map.push(Array(iteration * 2).fill(false).fill(true, iteration - i - 1, iteration + i + 1))
   }
-  for (let i = 0; i < step; i++) {
-    grid.push(Array(step * 2).fill(false).fill(true, i, 2 * step - i))
+  for (let i = 0; i < iteration; i++) {
+    map.push(Array(iteration * 2).fill(false).fill(true, i, 2 * iteration - i))
   }
 
   // mark the spaces that are currently occupied by dominoes
   for (let domino of dominoesToKeep) {
     for (let x = domino.x; x < domino.x + domino.w; x++) {
       for (let y = domino.y; y < domino.y + domino.h; y++) {
-        grid[y+step][x+step] = false
+        map[y+iteration][x+iteration] = false
       }
     }
   }
 
   // search for 2x2 boxes to spawn new dominoes
   let dominoesToAdd = []
-  for (let x = 0; x < 2 * step - 1; x++) {
-    for (let y = 0; y < 2 * step - 1; y++) {
-      if (grid[y][x] && grid[y+1][x] && grid[y][x+1] && grid[y+1][x+1]) {
-        dominoesToAdd.push(...createTwoByTwo(x-step+1, y-step+1))
+  for (let x = 0; x < 2 * iteration - 1; x++) {
+    for (let y = 0; y < 2 * iteration - 1; y++) {
+      if (map[y][x] && map[y+1][x] && map[y][x+1] && map[y+1][x+1]) {
+        dominoesToAdd.push(...createTwoByTwo(x-iteration+1, y-iteration+1))
         // mark the spaces as occupied
-        grid[y][x] = grid[y+1][x] = grid[y][x+1] = grid[y+1][x+1] = false
+        map[y][x] = map[y+1][x] = map[y][x+1] = map[y+1][x+1] = false
       }
     }
   }
 
-  // fade out the dominoes that will collide
-  for (let domino of dominoesToDestroy) {
-    createjs.Tween.get(domino.shape).to({alpha: 0}, playSpeed * .15, createjs.Ease.getPowInOut(2))
-  }
-
-  // move the other dominoes to their new positions
-  for (let domino of dominoesToKeep) {
-    createjs.Tween.get(domino.shape)
-      .wait(playSpeed * .3)
-      .to({ x: domino.x, y: domino.y }, playSpeed * .15, createjs.Ease.getPowInOut(2))
-  }
+  stage.addChild(...dominoesToAdd.map(d => d.shape))
 
   dominoes = [...dominoesToKeep, ...dominoesToAdd]
 
-  timeout = setTimeout(() => {
-    stage.addChild(...dominoesToAdd.map(d => d.shape))
-    stage.removeChild(...dominoesToDestroy.map(d => d.shape))
+  await waitFor(playSpeed * .2)
+}
 
-    // after 14 steps, we adjust the transform so that the dominoes continue to stay within the canvas bounds
-    if (step >= 14) {
-      createjs.Tween.get(stage)
-        .to({ scale: CANVAS_SCALE * 14 / step }, playSpeed * .15, createjs.Ease.getPowInOut(2))
-    }
-  }, playSpeed * .6)
+// Finish the current iteration
+async function doIteration () {
+  // an actual reason to use a do-while loop
+  do {
+    await doStep()
+  } while (step < NUM_STEPS)
+}
+
+// Loop while isPlaying is true
+async function doPlayLoop () {
+  while (isPlaying) {
+    await doIteration()
+    await waitFor(playSpeed * .3)
+  }
 }
 
 function togglePlay () {
   isPlaying = !isPlaying
   document.getElementById('play-toggle-button').innerText = isPlaying ? 'Pause' : 'Play'
-  if (isPlaying) {
-    doStep()
-    playInterval = setInterval(doStep, playSpeed)
-  } else {
-    clearInterval(playInterval)
-  }
+  if (isPlaying) doPlayLoop()
 }
 
+function drawGridForIteration (n) {
+  grid.graphics.clear().setStrokeStyle(GRID_BORDER_WIDTH).beginStroke(GRID_COLOR)
+  for (let i = -n; i <= n; i++) {
+    const len = Math.min(n, Math.abs(n - Math.abs(i) + 1))
+    grid.graphics.moveTo(i, -len).lineTo(i, len)
+    grid.graphics.moveTo(-len, i).lineTo(len, i)
+  }
+}
 
 // Create a new domino with specified position, dimensions, and direction
 function createDomino (x, y, w, h, vx, vy) {
@@ -206,6 +270,10 @@ function redraw () {
       .drawRect(0, 0, domino.w, domino.h)
   }
   stage.update()
+}
+
+function waitFor (time) {
+  return new Promise(resolve => setTimeout(resolve, time))
 }
 
 // Partitions an array into those items that satisfy a predicate and those that don't
