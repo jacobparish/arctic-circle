@@ -162,7 +162,7 @@ async function doAdvanceStep () {
       .to({ x: domino.x, y: domino.y }, playSpeed * .1, createjs.Ease.getPowInOut(2))
   }
 
-  await waitFor(playSpeed * .2)
+  await waitFor(playSpeed * .25)
 }
 
 async function doCreateStep () {
@@ -199,8 +199,6 @@ async function doCreateStep () {
   stage.addChild(...dominoesToAdd.map(d => d.shape))
 
   dominoes = [...dominoesToKeep, ...dominoesToAdd]
-
-  await waitFor(playSpeed * .2)
 }
 
 // Finish the current iteration
