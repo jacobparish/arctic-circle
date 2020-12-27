@@ -17,3 +17,14 @@ body {
 #controls-container > div {
     margin: 1em;
 }
+
+#github-link {
+    margin: 3em 1em;
+    display: flex;
+    color: black;
+    text-decoration: none;
+}
+
+#github-logo {
+    margin-left: 0.5em;
+}
