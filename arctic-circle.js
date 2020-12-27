@@ -11,7 +11,7 @@ let dominoes
 // play/pause controls
 let isPlaying = false
 let playInterval
-let playSpeed = 1500
+let playSpeed = 2000
 let timeout
 
 // other controls
@@ -132,19 +132,19 @@ function doStep () {
     }
   }
 
-  // do domino animations for this step
-  for (let domino of dominoes) {
-    const newProps = { x: domino.x, y: domino.y }
+  const [dominoesToDestroy, dominoesToKeep] = partition(dominoes, d => d.shouldDestroy)
 
-    // fade out dominoes that should be destroyed
-    if (domino.shouldDestroy) {
-      newProps.alpha = 0
-    }
-
-    createjs.Tween.get(domino.shape).to(newProps, playSpeed * .25, createjs.Ease.getPowInOut(2))
+  // fade out the dominoes that will collide
+  for (let domino of dominoesToDestroy) {
+    createjs.Tween.get(domino.shape).to({alpha: 0}, playSpeed * .15, createjs.Ease.getPowInOut(2))
   }
 
-  const [dominoesToDestroy, dominoesToKeep] = partition(dominoes, d => d.shouldDestroy)
+  // move the other dominoes to their new positions
+  for (let domino of dominoesToKeep) {
+    createjs.Tween.get(domino.shape)
+      .wait(playSpeed * .3)
+      .to({ x: domino.x, y: domino.y }, playSpeed * .15, createjs.Ease.getPowInOut(2))
+  }
 
   dominoes = [...dominoesToKeep, ...dominoesToAdd]
 
@@ -155,9 +155,9 @@ function doStep () {
     // after 14 steps, we adjust the transform so that the dominoes continue to stay within the canvas bounds
     if (step >= 14) {
       createjs.Tween.get(stage)
-        .to({ scale: CANVAS_SCALE * 14 / step }, playSpeed * .25, createjs.Ease.getPowInOut(2))
+        .to({ scale: CANVAS_SCALE * 14 / step }, playSpeed * .15, createjs.Ease.getPowInOut(2))
     }
-  }, playSpeed * .5)
+  }, playSpeed * .6)
 }
 
 function togglePlay () {
