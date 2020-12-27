@@ -1,0 +1,13 @@
+body {
+    font-family: Avenir, Helvetica, Arial, sans-serif;
+}
+
+#controls-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+#controls-container > div {
+    margin: 1em;
+}
