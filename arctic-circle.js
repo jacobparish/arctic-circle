@@ -108,22 +108,22 @@ async function doStep () {
 }
 
 async function doCollideStep () {
-  // destroy dominoes that will collide
-  // we could do better than O(n^2) here but this seemed easier
-  for (let i = 0; i < dominoes.length; i++) {
-    for (let j = 0; j < dominoes.length; j++) {
-      if (i === j) continue
+  let positionMap = {}
 
-      let d1 = dominoes[i]
-      let d2 = dominoes[j]
-      if (d1.w === 1 && d2.w === 1) {
-        if (d1.y === d2.y && d1.x === d2.x + 1 && d1.vx === -1 && d2.vx === 1) {
-          d1.shouldDestroy = d2.shouldDestroy = true
-        }
-      } else if (d1.h === 1 && d2.h === 1) {
-        if (d1.x === d2.x && d1.y === d2.y + 1 && d1.vy === -1 && d2.vy === 1) {
-          d1.shouldDestroy = d2.shouldDestroy = true
-        }
+  for (let d of dominoes) {
+    positionMap[d.x + ',' + d.y] = d
+  }
+
+  for (let d1 of dominoes) {
+    if (d1.vx === 1) {
+      let d2 = positionMap[(d1.x+1) + ',' + d1.y]
+      if (d2 && d2.vx === -1) {
+        d1.shouldDestroy = d2.shouldDestroy = true
+      }
+    } else if (d1.vy === 1) {
+      let d2 = positionMap[d1.x + ',' + (d1.y+1)]
+      if (d2 && d2.vy === -1) {
+        d1.shouldDestroy = d2.shouldDestroy = true
       }
     }
   }
@@ -136,7 +136,7 @@ async function doCollideStep () {
     createjs.Tween.get(domino.shape).to({alpha: 0}, playSpeed * .1, createjs.Ease.getPowInOut(2))
   }
 
-  await waitFor(playSpeed * .2)
+  await waitFor(playSpeed * .1)
 
   stage.removeChild(...dominoesToDestroy.map(d => d.shape))
 }
@@ -150,7 +150,7 @@ async function doExpandStep () {
       .to({ scale: CANVAS_SCALE * 14 / iteration }, playSpeed * .1, createjs.Ease.getPowInOut(2))
   }
 
-  await waitFor(playSpeed * .15)
+  await waitFor(playSpeed * .1)
 }
 
 async function doAdvanceStep () {
@@ -162,7 +162,7 @@ async function doAdvanceStep () {
       .to({ x: domino.x, y: domino.y }, playSpeed * .1, createjs.Ease.getPowInOut(2))
   }
 
-  await waitFor(playSpeed * .25)
+  await waitFor(playSpeed * .1)
 }
 
 async function doCreateStep () {
@@ -206,6 +206,7 @@ async function doIteration () {
   // an actual reason to use a do-while loop
   do {
     await doStep()
+    await waitFor(playSpeed * .1)
   } while (step < NUM_STEPS)
 }
 
