@@ -250,7 +250,7 @@ function createDomino (x, y, w, h, vx, vy) {
 
 // creates a 2x2 box centered at (x,y) with orientation randomly determined by orientationBias
 function createTwoByTwo (x, y) {
-  return Math.random() < orientationBiasFunction.evaluate({x, y, n: iteration})
+  return Math.random() > orientationBiasFunction.evaluate({x, y, n: iteration})
     ? [createDomino(x-1, y-1, 2, 1, 0, -1), createDomino(x-1, y, 2, 1, 0, 1)]
     : [createDomino(x-1, y-1, 1, 2, -1, 0), createDomino(x, y-1, 1, 2, 1, 0)]
 }
