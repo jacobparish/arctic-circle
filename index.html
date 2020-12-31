@@ -7,6 +7,7 @@
     <link rel="icon" href="favicon.ico">
     <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
     <script src="https://code.createjs.com/1.0.0/tweenjs.min.js"></script>
+    <script src="https://unpkg.com/mathjs@8.1.1/lib/browser/math.js"></script>
     <script src="arctic-circle.js"></script>
     <link rel="stylesheet" href="main.css"></link>
 </head>
@@ -27,9 +28,17 @@
 
             <div>
                 <h3>Orientation bias</h3>
-                <span>||</span>
-                <input type="range" min="0" max="1" step=".01" value="0.5" id="orientation-bias-input">
-                <span>==</span>
+
+                <p>
+                    Enter a function of x and y below. When a new 2x2 is placed at (x,y), the value of the function is the probability a new 2x2 is oriented <i>vertically</i>. You can also use the iteration n.
+                </p>
+
+                p(x,y,n) =
+                <input id="orientation-bias-input" value="0.5">
+
+                <p>
+                    <small>Learn more about function syntax <a href="https://mathjs.org/docs/expressions/syntax.html">here</a>.</small>
+                </p>
             </div>
 
             <div>

@@ -29,7 +29,9 @@ let playSpeed = 2500
 let timeout
 
 // other controls
-let orientationBias = 0.5
+let orientationBiasFunction = {evaluate: () => 0.5}
+
+// colors
 let westwardColor = "#0000ff"
 let eastwardColor = "#ffa500"
 let northwardColor = "#ff0000"
@@ -51,7 +53,7 @@ function init() {
   doReset()
 
   document.getElementById('orientation-bias-input').addEventListener('input', event => {
-    orientationBias = event.target.value
+    orientationBiasFunction = math.compile(event.target.value)
   })
 
   document.getElementById('westward-color-input').addEventListener('change', event => {
@@ -248,7 +250,7 @@ function createDomino (x, y, w, h, vx, vy) {
 
 // creates a 2x2 box centered at (x,y) with orientation randomly determined by orientationBias
 function createTwoByTwo (x, y) {
-  return Math.random() < orientationBias
+  return Math.random() < orientationBiasFunction.evaluate({x, y, n: iteration})
     ? [createDomino(x-1, y-1, 2, 1, 0, -1), createDomino(x-1, y, 2, 1, 0, 1)]
     : [createDomino(x-1, y-1, 1, 2, -1, 0), createDomino(x, y-1, 1, 2, 1, 0)]
 }
